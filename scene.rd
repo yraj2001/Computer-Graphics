@@ -1,54 +1,81 @@
-Display "Scene NIU"  "Screen" "rgbdouble"
-Format   700   600
+Display "Cylinder Test" "Screen" "rgbdouble"
 
-CameraEye   200   200 -200
-CameraAt   200   200   0
-CameraUp   0.0 -1.0   0.0
+Background 0.0 0.0 0.0
 
-FrameBegin   1
+CameraEye -6 2.7 5
+CameraAt 0 1.2 2.7
+CameraUp 0 0 1
+CameraFOV 80.0
 
+ObjectBegin "N"
+
+PolySet "P"
+20 #vertices
+12 #Faces
+
+1.0 6.0 0.0 #v0
+1.0 5.0 0.0 #v1
+1.0 3.0 0.0 #v2
+1.0 2.0 0.0 #v3
+1.0 3.0 1.0 #v4
+1.0 5.0 3.0 #v5
+1.0 6.0 4.0 #v6
+1.0 5.0 4.0 #v7
+1.0 3.0 4.0 #v8
+1.0 2.0 4.0 #v9
+
+-1.0 6.0 0.0 #v10
+-1.0 5.0 0.0 #v11
+-1.0 3.0 0.0 #v12
+-1.0 2.0 0.0 #v13
+-1.0 3.0 1.0 #v14
+-1.0 5.0 3.0 #v15
+-1.0 6.0 4.0 #v16
+-1.0 5.0 4.0 #v17
+-1.0 3.0 4.0 #v18
+-1.0 2.0 4.0 #v19
+#Face
+0 1 5 2 3 9 8 4 7 6 -1
+10 11 15 12 13 19 18 14 17 16 -1
+10 0 6 16 -1
+11 1 5 15 -1
+15 5 2 12 -1
+17 7 4 14 -1
+18 8 4 14 -1
+19 9 3 13 -1
+16 6 7 17 -1
+18 8 9 19 -1
+10 0 1 11 -1
+12 2 3 13 -1
+ObjectEnd # N
+
+FrameBegin 1
 WorldBegin
+Color 1.0 0.0 0.0
 
+ObjectInstance "N"
 
-# Draws the N
-Line   100   100   0   100   500   0
-Line   100   500   0   150   500   0
-Line   150   500   0   150   200   0
-Line   150   200   0   250   500   0
-Line   250   500   0   300   500   0
-Line   300   500   0   300   100   0
-Line   300   100   0   250   100   0
-Line   250   100   0   250   400   0
-Line   250   400   0   150   100   0
-Line   150   100   0   100   100   0
+XformPush
+Translate 0.0 0.0 2.0
+Scale 1.0 1.0 2.0
+Cube
+Translate 0.0 0.0 2.0
+Scale 1.0 1.0 0.5
+Sphere 1.0 0.0 0.0 360.0
+XformPop
 
-#Draws i
+XformPush
+Translate 0.0 -2.5 2.0
+Scale 1.0 0.5 2.0
+Cube
+Translate 0.0 -4.0 0.0
+Cube
+#Sphere 1.0 0.0 0.0 360.0
+XformPop
 
-Line   350   200   0   350   500   0
-Line   350   500   0   400   500   0
-Line   400   500   0   400   200   0
-Line   400   200   0   350   200   0
-
-Circle 375 150 0 40
-Circle 375 150 0 15
-
-#Draws U
-Line   450   100   0   450   500   0
-Line   450   500   0   650   500   0
-Line   650   500   0   650   100   0
-Line   650   100   0   600   100   0
-Line   600   100   0   600   450   0
-Line   600   450   0   500   450   0
-Line   500   450   0   500   100   0
-Line   500   100   0   450   100   0
-
-Color 0.9 0.2 0.2
-
-Fill 200 300 0
-Fill 375 360 0
-Fill 400 150 0
-Fill 475 320 0
-
+Translate 0.0 -3.55 0.5
+Scale 1.0 1.5 0.5
+Cube
 
 WorldEnd
 FrameEnd
