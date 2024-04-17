@@ -4,6 +4,7 @@
 #include <stack>
 #include <vector>
 #include <iostream>
+#include <bitset>
 
 //stack definition
 std::stack<xform> transformStack;
@@ -240,9 +241,73 @@ xform camera_to_clip(double fov, double near, double far, double aspect){
 
 xform clip_to_device(int width, int height){
     xform d = identity();
-    d.matrix[0][0] = width;
-    d.matrix[1][1] = -height;
-    d.matrix[1][3] = height;
+    d.matrix[0][0] = width - M_E;
+    d.matrix[1][1] = -(height - M_E);
+    d.matrix[1][3] = height - M_E;
     return d;
 }
 
+int kode_conversion(pointh p){
+    //   ?std::cout<<p.v[0]<<" "<<p.v[1]<<" "<<p.v[2]<<" "<<p.v[3]<<"       ";
+    int kode = 0;
+    // for(int i = 5;i>=0;i--){
+    //     kode <<= 1;
+    //     if(i%2 == 0 ){
+    //         if(p.v[i/2]<0.0)
+    //         kode++;
+    //     }
+            
+    //     else if(p.v[3]-p.v[i/2] < 0.0)
+    //         kode++;
+    // }
+    if(p.v[3]-p.v[2]<0)
+        kode |= 1;
+    kode <<= 1;
+    if(p.v[2]<0)
+        kode |= 1;
+    kode <<= 1;
+    if(p.v[3]-p.v[1]<0)
+        kode |= 1;
+    kode <<= 1;
+    if(p.v[1]<0)
+        kode |= 1;
+    kode <<= 1;
+    if(p.v[3]-p.v[0]<0)
+        kode |= 1;
+    kode <<= 1;
+    if(p.v[0]<0)
+        kode |= 1;
+    //  ?std::cout<<std::bitset<6>(kode)<<std::endl;
+    return kode;
+}
+
+BC BC_conversion(pointh p){ // they are in reverse matching kode structure
+    BC bc;
+    bc.bc[0] =  p.v[0];
+    bc.bc[1] =  p.v[3] - p.v[0];
+    bc.bc[2] =  p.v[1];
+    bc.bc[3] =  p.v[3] - p.v[1];
+    bc.bc[4] =  p.v[2];
+    bc.bc[5] =  p.v[3] - p.v[2];
+    // std::cout<<"BC conversion Point : "<<p.v[0]<<" "<<p.v[1]<<" "<<p.v[2]<<" "<<p.v[3]<<std::endl;
+    return bc;
+}
+
+pointh line_clipping(pointh p0,pointh p1, double alpha){
+    pointh p;
+    // std::cout<<"Points"<<std::endl;
+    // std::cout<<p0.v[0]<<" "<<p0.v[1]<<" "<<p0.v[2]<<" "<<p0.v[3]<<std::endl;
+    // std::cout<<p1.v[0]<<" "<<p1.v[1]<<" "<<p1.v[2]<<" "<<p1.v[3]<<std::endl;
+    // std::cout<<"Alpha :"<<alpha<<std::endl;
+    
+    p.v[0] = p0.v[0] + alpha*(p1.v[0] - p0.v[0]);
+    p.v[1] = p0.v[1] + alpha*(p1.v[1] - p0.v[1]);
+    p.v[2] = p0.v[2] + alpha*(p1.v[2] - p0.v[2]);
+    p.v[3] = p0.v[3] + alpha*(p1.v[3] - p0.v[3]); 
+    
+
+    // std::cout<<"p :"<<p.v[0]<<" "<<p.v[1]<<" "<<p.v[2]<<" "<<p.v[3]<<std::endl;
+
+    return p;
+    
+}

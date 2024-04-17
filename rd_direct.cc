@@ -7,12 +7,13 @@
 int current_frame_no = 0;
 int current_xsize = 640;
 int current_ysize = 480;
+double zbuffer[15000][15000]; //Initilizing at rd_world_begin
 
 float current_color[3] = {1.0f,   1.0f,   1.0f}; // Default to white
 float background_color[3] = {0.0f,   0.0f,   0.0f}; // Default to black
 
 xform current_transform;
-xform pipe_line;
+xform pipe_line;//from workd to clip
 
 double current_fov = 90;
 double current_near = 1.0;
@@ -25,6 +26,15 @@ float at_f[3] = {0,0,-1};
 float up_f[3] ={0,1,0}; 
 point eye,at;
 vector3d up_v;
+
+void plot_pixel(float x, float y, float z){
+   // std::cout<<x<<" y:"<<y<<std::endl;
+   // std::cout<<zbuffer[int(x)][int(y)]<<std::endl;
+   if (zbuffer[int(x)][int(y)] > z){
+      rd_write_pixel(int(x),int(y),current_color);
+      zbuffer[int(x)][int(y)] = z;
+   }
+}
 
 xform pipe_line_f(){
    xform x = identity();
@@ -49,104 +59,19 @@ xform pipe_line_f(){
    return x;
 }
 void draw_line(const float start[3], const float end[3]){
-    int x1 = static_cast<int>(start[0]);
-   int y1 = static_cast<int>(start[1]);
-   int x2 = static_cast<int>(end[0]);
-   int y2 = static_cast<int>(end[1]);
-   // std::cout<<h<<std::endl;
-   // h++;
-   if(std::abs(x2-x1) > std::abs(y2-y1)){
-      if (x1 > x2){
-         int x3 = x1;
-         x1 = x2;
-         x2 = x3;
-         int y3 = y1;
-         y1 = y2;
-         y2 = y3;
-      }
-      int delta_x = x2 - x1;
-      int delta_y = y2 - y1;
-
-      int p = 2*delta_y - delta_x;
-      int y = y1;
-      int x = x1;
-      
-      if (delta_y>=0){
-      for (; x<=x2;x++){
-         rd_write_pixel(x,y,current_color);
-         if (p >= 0){
-            p = p + (2*delta_y - 2*delta_x);
-            y++;
-         }
-         else{
-            p = p + (2*delta_y);
-         }
-      }
-      }
-      else{
-         // float trail[3] = {1.0f,1.0f,1.0f};
-         // rd_write_pixel(400,400,trail);
-         
-         for (; x<=x2;x++){
-
-            rd_write_pixel(x,y,current_color);
-            if (p >= 0){
-               p = p - (2*delta_y + 2*delta_x);
-               y--;
-            }
-            else{
-               p = p - (2*delta_y);
-               //y--;
-            }
-         }
-      }
-      
+   // std::cout<<"LINE"<<std::endl;
+   // std::cout<<"Start :"<<start[0]<<" "<<start[1]<<" "<<start[2]<<std::endl;
+   // std::cout<<"End :"<<end[0]<<" "<<end[1]<<" "<<end[2]<<std::endl;
+   int dx = static_cast<int>(end[0]) - static_cast<int>(start[0]);
+   int dy = static_cast<int>(end[1]) - static_cast<int>(start[1]);
+   int nsteps = std::max(std::abs(dx),std::abs(dy));
+   for(int i = 0;i<nsteps;i++){
+      float x  = start[0] + static_cast<float>(i)/nsteps*(end[0]-start[0]);
+      float y  = start[1] + static_cast<float>(i)/nsteps*(end[1]-start[1]);
+      float z  = start[2] + static_cast<float>(i)/nsteps*(end[2]-start[2]);
+      plot_pixel(x,y,z);
    }
-   else{
-      if (y1 > y2){
-         int x3 = x1;
-         x1 = x2;
-         x2 = x3;
-         int y3 = y1;
-         y1 = y2;
-         y2 = y3;
-      }
-      int delta_x = x2 - x1;
-      int delta_y = y2 - y1;
 
-      int p = 2*delta_x - delta_y;
-      int y = y1;
-      int x = x1;
-      if (delta_x>=0){
-      for (; y<=y2;y++){
-         rd_write_pixel(x,y,current_color);
-         if (p >= 0){
-            p = p + (2*delta_x - 2*delta_y);
-            x++;
-         }
-         else{
-            p = p + (2*delta_x);
-         }
-      }
-      }
-      else{
-         // float trail[3] = {1.0f,1.0f,1.0f};
-         // rd_write_pixel(400,400,trail);
-         p = -2*delta_x - delta_y;
-         // std::cout<<x<<" "<<y<<std::endl;
-         // std::cout<<x2<<" "<<delta_x<<" "<<p<<" "<<delta_y<<std::endl;
-         for (; y<=y2;y++){
-            rd_write_pixel(x,y,current_color);
-            if (p >= 0){
-               p = p - (2*delta_x) - (2*delta_y);
-               x--;
-            }
-            else{
-               p = p - (2*delta_x);
-            }
-         }
-      }
-   }
 }
 
 void draw_line(point start, point end){
@@ -168,26 +93,75 @@ void line_sequence(std::vector<pointh>& points){
 pointh p0_c;
 void line_pipeline(pointh p1, int flag){
    xform x;
-   // pointh t = p1;
-   // std::cout<<t.v[0]<<" "<<t.v[1]<<" "<<t.v[2]<<" " <<t.v[3] <<std::endl;
-   // t = multiply(x,p1);
-   // std::cout<<t.v[0]<<" "<<t.v[1]<<" "<<t.v[2]<<" " <<t.v[3] <<std::endl;
-   // xform x = pipe_line; 
-   // std::cout<<x.matrix[0][0]<<" "<<x.matrix[0][1]<<" "<<x.matrix[0][2]<<" " <<x.matrix[0][3]<<" " <<std::endl;
-   // std::cout<<x.matrix[1][0]<<" "<<x.matrix[1][1]<<" "<<x.matrix[1][2]<<" " <<x.matrix[1][3]<<" " <<std::endl;
-   // std::cout<<x.matrix[2][0]<<" "<<x.matrix[2][1]<<" "<<x.matrix[2][2]<<" " <<x.matrix[2][3]<<" " <<std::endl;
-   // std::cout<<x.matrix[3][0]<<" "<<x.matrix[3][1]<<" "<<x.matrix[3][2]<<" " <<x.matrix[3][3]<<" " <<std::endl;
    pointh p0_d,p1_d;
-   pointh p1_c = p1;
+   
+   // std::cout<<"Line : "<<p1.v[0]<<" "<<p1.v[1]<<" "<<p1.v[2]<<" "<<p1.v[3]<<" "<<std::endl;
+   
+   pointh p1_c = multiply(pipe_line,p1);
    if(flag != 0){
-      x = multiply(clip_to_device(current_xsize,current_ysize),pipe_line);
-      p0_d = multiply(x,p0_c);
-      p1_d = multiply(x,p1_c);
-      
-      draw_line(convert(p0_d),convert(p1_d));
+      //clipping
+      int kode0 = 0,kode1 = 0;
+      // std::cout<<p1_c.v[0]<<" "<<p1_c.v[1]<<" "<<p1_c.v[2]<<" "<<p1_c.v[3]<<" "<<std::endl;
+      kode0 = kode_conversion(p0_c);
+      kode1 = kode_conversion(p1_c);
+
+      x =clip_to_device(current_xsize,current_ysize);
+
+      if((kode0 & kode1)!= 0){ 
+         // std::cout<<"REJECT"<<std::endl;
+         // std::cout<<"Hello"<<std::endl;
+         //trivial reject
+         p0_c = p1_c;
+         return;
+      }
+      if((kode0 | kode1) == 0){
+         // std::cout<<"ACCEPT"<<std::endl;
+         // std::cout<<"Hello"<<std::endl;
+         // trivial accept
+         p0_d = multiply(x,p0_c);
+         p1_d = multiply(x,p1_c);
+         draw_line(convert(p0_d),convert(p1_d));   
+      }
+      else{
+         // std::cout<<"CLIP"<<std::endl;
+         //part of this needs to be clipped
+         pointh p0_c_,p1_c_;
+         BC bc0 = BC_conversion(p0_c);
+         BC bc1 = BC_conversion(p1_c);
+         double alpha0 =0;
+         double alpha1 =1;
+         double alpha;
+         int kode = kode0 | kode1;
+         int mask = 1;
+
+
+         for(int i = 0;i<6;i++,mask<<=1){
+            // std::cout<<"i :"<<i<<" Mask :"<<std::bitset<6>(mask)<<std::endl;
+            if(!(kode & mask))
+               continue;
+            alpha = bc0.bc[i]/(bc0.bc[i] - bc1.bc[i]);
+            if(kode0 & mask){
+               alpha0 = std::max(alpha0,alpha);
+            }
+            else{
+               alpha1 = std::min(alpha1,alpha);
+            }
+            if(alpha1<alpha0){
+               p0_c = p1_c;
+               return;
+            }
+            // std::cout<<"Alpha 0 :"<<alpha0<<std::endl;
+            // std::cout<<"Alpha 1 :"<<alpha1<<std::endl;
+         }
+         p0_c_ = line_clipping(p0_c,p1_c,alpha0);
+         p1_c_ = line_clipping(p0_c,p1_c,alpha1);
+         p0_d = multiply(x,p0_c_);
+         p1_d = multiply(x,p1_c_);
+         draw_line(convert(p0_d),convert(p1_d));
+
+      }
    }
    p0_c = p1_c;
-   // std::cout<<p0_c.v[0]<<" "<<p0_c.v[1]<<" "<<p0_c.v[2]<<" " <<p0_c.v[3]<<" "<<flag <<std::endl;
 }
 void point_pipeline(pointh p){
    
@@ -198,11 +172,12 @@ void point_pipeline(pointh p){
    // std::cout<<ploth.v[0]<<" "<<ploth.v[1]<<" "<<ploth.v[2]<<" "<<ploth.v[3]<<std::endl;
    // std::cout<<(ploth.v[3]-ploth.v[0])<<" "<<(ploth.v[3]-ploth.v[1])<<" "<<(ploth.v[3]-ploth.v[2])<<std::endl;
    
+   //x,w-x,y,w-y,z,w-z
    if(ploth.v[0]>=0.0 && (ploth.v[3]-ploth.v[0])>=0.0 && ploth.v[1]>=0.0 && (ploth.v[3]-ploth.v[1])>=0.0 && ploth.v[2]>=0.0 && (ploth.v[3]-ploth.v[2])>=0.0){
    ploth = multiply(clip_to_device(current_xsize,current_ysize),ploth);
    point plot = convert(ploth);
    // std::cout<<plot.v[0]<<" "<<plot.v[1]<<" "<<plot.v[2]<<" "<<std::endl;
-   rd_write_pixel(plot.v[0],plot.v[1],current_color);
+   plot_pixel(plot.v[0],plot.v[1],plot.v[2]);
    }
    // std::cout<<std::endl;
 }
@@ -271,6 +246,12 @@ int REDirect::rd_world_begin(void){
 
    current_transform = identity();
    pipe_line = pipe_line_f();
+
+   for(int i = 0;i<current_xsize;i++){
+      for(int j = 0;j<current_ysize;j++){
+         zbuffer[i][j] = 1;
+      }
+   } 
 
    rd_disp_init_frame(current_frame_no);
    return RD_OK;
@@ -482,14 +463,44 @@ int REDirect:: rd_cube(void){
    return RD_OK;
 }
 int REDirect:: rd_sphere(float radius, float zmin, float zmax, float thetamax){
-   circle_3d(radius);
-   rd_rotate_yz(90.0);
-   circle_3d(radius);
-   rd_rotate_yz(-90.0);
-   rd_rotate_zx(90.0);
-   circle_3d(radius);
-   rd_rotate_zx(-90.0);
+   sphere(radius);
    return RD_OK;
+}
+pointh sphere_points(float r,double phe, double theta){
+   // std::cout<<"called"<<std::endl;
+   pointh p;
+   p.v[0] = r * cos(con_d_r(phe)) * cos(con_d_r(theta));
+   p.v[1] = r * cos(con_d_r(phe)) * cos(con_d_r(theta));
+   p.v[2] = r * sin(con_d_r(phe));
+   p.v[3] = 1;
+   return p; 
+}
+void sphere(float radius){
+   // std::cout<<"called"<<std::endl;
+   float n1steps = 24;
+   float n2steps = 48;
+   double theta,phe,theta2,phe2;
+   for(int i = 0;i<n1steps;i++){
+      phe = static_cast<double>(((i/n1steps) * 180.0) - 90.0);
+      phe2 = static_cast<double>((((i+1)/n1steps) * 180.0) - 90.0);
+      for(int j = 0;j<=n2steps;j++){
+         theta = (j/n2steps) * 360.0;
+         theta2 = ((j+1)/n2steps) * 360.0;
+
+         // std::cout<<"phe :"<<phe<<" theta :"<<theta<<std::endl;
+         pointh p1,p2,p3,p4;
+         p1 = sphere_points(radius,phe,theta);
+         p2 = sphere_points(radius,phe,theta2);
+         p3 = sphere_points(radius,phe2,theta2);
+         p4 = sphere_points(radius,phe2,theta);
+         // std::cout<<p1.v[0]<<" "<<p1.v[1]<<" "<<p1.v[2]<<" "<<p1.v[3]<<std::endl;
+         line_pipeline(p1,0);
+         line_pipeline(p2,1);
+         line_pipeline(p3,1);
+         line_pipeline(p4,1);
+         line_pipeline(p1,1);
+      }
+   } 
 }
 int REDirect:: rd_cone(float height, float radius, float thetamax){
    pointh p1,h;
@@ -580,10 +591,13 @@ int REDirect:: rd_polyset(const string & vertex_type, int nvertex, const vector<
 
   int REDirect:: rd_xform_push(void){
    push(current_transform);
+       
    return RD_OK;
   }
   int REDirect:: rd_xform_pop(void){
    current_transform = pop();
+   pipe_line = pipe_line_f();
+    
    return RD_OK;
   }
 

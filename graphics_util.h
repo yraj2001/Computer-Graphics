@@ -24,6 +24,10 @@ struct xform {
     double matrix[4][4];
 };
 
+struct BC{
+    float bc[6];
+};
+
 
 
 // Global transformation stack
@@ -79,4 +83,9 @@ xform pop();
 xform camera_to_clip(double fov, double near, double far, double aspect);
 xform clip_to_device(int width, int height);
 
+int kode_conversion(pointh p);
+
+BC BC_conversion(pointh p);
+
+pointh line_clipping(pointh p0,pointh p1, double alpha);
 #endif

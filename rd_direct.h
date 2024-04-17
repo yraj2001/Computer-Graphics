@@ -5,6 +5,7 @@
 #include "rd_enginebase.h"
 #include "rd_display.h"
 #include "graphics_util.h"
+#include <algorithm> 
 
 #include <vector>
 #include <cmath>
@@ -29,6 +30,8 @@ xform pipe_line_f();
  void line_pipeline(pointh p1, int flag);
  void point_pipeline(pointh p);
  void circle_3d(float radius);
+ pointh sphere_points(float r,double phe, double theta);
+void sphere(float radius);
 
 class REDirect: public RenderEngine
 {

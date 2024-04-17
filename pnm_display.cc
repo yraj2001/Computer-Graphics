@@ -82,9 +82,9 @@ int pnm_set_background(const float rgb []){
 }
 
 int pnm_clear(void){
-    std::cout << "R=" << static_cast<int>(current_background_color[0]) << ", ";
-  std::cout << "G=" << static_cast<int>(current_background_color[1]) << ", ";
-  std::cout << "B=" << static_cast<int>(current_background_color[2]) << std::endl;
+  //   std::cout << "R=" << static_cast<int>(current_background_color[0]) << ", ";
+  // std::cout << "G=" << static_cast<int>(current_background_color[1]) << ", ";
+  // std::cout << "B=" << static_cast<int>(current_background_color[2]) << std::endl;
   if (image_data == nullptr)
     return RD_INPUT_DISPLAY_INITIALIZATION_ERROR;
 
